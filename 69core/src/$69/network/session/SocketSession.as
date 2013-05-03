@@ -49,7 +49,7 @@ import flash.utils.ByteArray;
 public dynamic class SocketSession implements IoSession, IoChainController, ILifecycle {
 
     /** @private */
-    private static const _EMPTY_FILTERS:Vector.<IoFilter> = new Vector.<IoFilter>();
+    private static const _EMPTY_FILTERS:Vector.<IoFilter> = new Vector.<IoFilter>(0, true);
     /** @private */
     private static var _EMPTY_HANDLER:IoHandler;
     /** @private */
