@@ -29,6 +29,7 @@ import $69.core.api.ILifecycle;
 import $69.network.api.IoChainController;
 import $69.network.api.IoClient;
 import $69.network.api.IoFilter;
+import $69.network.api.IoHandler;
 import $69.network.api.IoSession;
 
 import flash.errors.IOError;
@@ -48,10 +49,13 @@ import flash.utils.ByteArray;
 public dynamic class SocketSession implements IoSession, IoChainController, ILifecycle {
 
     /** @private */
+    private static const _EMPTY_FILTERS:Vector.<IoFilter> = new Vector.<IoFilter>();
+    /** @private */
+    private static var _EMPTY_HANDLER:IoHandler;
+    /** @private */
     private static const _READ_OPS:int = 1 << 1;
     /** @private */
     private static const _WRITE_OPS:int = 1 << 2;
-
     /** @private */
     private const _id:Number = nextSessionId();
     /** @private */
@@ -129,6 +133,26 @@ public dynamic class SocketSession implements IoSession, IoChainController, ILif
     }
 
     /**
+     * The <tt>IoFilter</tt>s associated with this session.
+     */
+    protected function get filters():Vector.<IoFilter> {
+        if (_service && _service.filters) {
+            return _service.filters;
+        }
+        return _EMPTY_FILTERS;
+    }
+
+    /**
+     * The <tt>IoHandler</tt> associated with this session.
+     */
+    protected function get handler():IoHandler {
+        if (_service && _service.handler) {
+            return _service.handler;
+        }
+        return _EMPTY_HANDLER;
+    }
+
+    /**
      * @inheritDoc
      */
     public function write(message:Object):void {
@@ -136,21 +160,16 @@ public dynamic class SocketSession implements IoSession, IoChainController, ILif
             if (message is ByteArray) {
                 writeDirect(message as ByteArray);
 
-                if (_service && _service.filters) {
-                    var filters:Vector.<IoFilter> = _service.filters;
-                    for each(var f:IoFilter in filters) {
-                        f.messageSent(this, message);
-                    }
+                var chain:Vector.<IoFilter> = filters;
+                for each(var f:IoFilter in chain) {
+                    f.messageSent(this, message);
                 }
 
-                if (_service && _service.handler) {
-                    _service.handler.messageSent(this, message);
-                }
-
+                handler.messageSent(this, message);
             } else {
-                if (_service && _service.filters && _service.filters.length) {
+                if (filters.length) {
                     _ops |= _WRITE_OPS;
-                    _service.filters[_service.filters.length - 1].messageWritting(this, message, this);
+                    filters[filters.length - 1].messageWritting(this, message, this);
                 }
             }
         }
@@ -180,26 +199,23 @@ public dynamic class SocketSession implements IoSession, IoChainController, ILif
                 }
 
                 _ops &= ~_WRITE_OPS;
-                _writeChainPos = _service.filters.length - 1;
+                _writeChainPos = filters.length - 1;
             }
 
-            if (_service && _service.filters) {
-                _service.filters[_writeChainPos--].messageWritting(session, message, this);
+            if (_writeChainPos >= 0 && filters.length) {
+                filters[_writeChainPos--].messageWritting(session, message, this);
             }
         }
 
         if (_READ_OPS == (_ops & _READ_OPS)) { // Process read.
-            if (_readChainPos >= _service.filters.length - 1) {
+            if (_readChainPos >= filters.length - 1) {
                 // end of chain.
                 _ops &= ~_READ_OPS;
                 _readChainPos = 0;
 
-                if (_service.handler) {
-                    _service.handler.messageReceived(session, message);
-                }
-
-            } else {
-                _service.filters[_readChainPos++].messageReceived(session, message, this);
+                handler.messageReceived(session, message);
+            } else if (_readChainPos < filters.length - 1) {
+                filters[_readChainPos++].messageReceived(session, message, this);
             }
         }
     }
@@ -209,6 +225,11 @@ public dynamic class SocketSession implements IoSession, IoChainController, ILif
      */
     public function init():void {
         if (_disposed || _initialized)  return;
+
+        // First construct the default empty handler.
+        if (null == _EMPTY_HANDLER) {
+            _EMPTY_HANDLER = new AnonymousHandler();
+        }
 
         if (_socket) {
             if (!_socket.hasEventListener(Event.CONNECT))
@@ -220,20 +241,16 @@ public dynamic class SocketSession implements IoSession, IoChainController, ILif
         }
 
         // Fires the session created event to the filters.
-        if (_service && _service.filters) {
-            _readChainPos = 0;
-            _writeChainPos = _service.filters.length - 1;
+        _readChainPos = 0;
+        _writeChainPos = filters.length - 1;
 
-            var filters:Vector.<IoFilter> = _service.filters;
-            for each(var f:IoFilter in filters) {
-                f.sessionCreated(this);
-            }
+        var chain:Vector.<IoFilter> = this.filters;
+        for each(var f:IoFilter in chain) {
+            f.sessionCreated(this);
         }
 
         // Fires the session created event to the handler.
-        if (_service && _service.handler) {
-            _service.handler.sessionCreated(this);
-        }
+        handler.sessionCreated(this);
 
         _initialized = true;
     }
@@ -300,17 +317,13 @@ public dynamic class SocketSession implements IoSession, IoChainController, ILif
 
     private function fireErrorCaught(error:Error):void {
         // Fires the error caught to the filters.
-        if (_service && _service.filters) {
-            var ioFilters:Vector.<IoFilter> = _service.filters;
-            for each (var f:IoFilter in ioFilters) {
-                f.errorCaught(this, error);
-            }
+        var chain:Vector.<IoFilter> = filters;
+        for each (var f:IoFilter in chain) {
+            f.errorCaught(this, error);
         }
 
         // Fires the error caught to the handler.
-        if (_service && _service.handler) {
-            f.errorCaught(this, error);
-        }
+        handler.errorCaught(this, error);
     }
 
 
@@ -334,17 +347,13 @@ public dynamic class SocketSession implements IoSession, IoChainController, ILif
             _socket.addEventListener(IOErrorEvent.IO_ERROR, _onIoError);
 
         // Fires the session opens to the filters.
-        if (_service && _service.filters) {
-            var ioFilters:Vector.<IoFilter> = _service.filters;
-            for each(var f:IoFilter in ioFilters) {
-                f.sessionOpened(this);
-            }
+        var chain:Vector.<IoFilter> = filters;
+        for each(var f:IoFilter in chain) {
+            f.sessionOpened(this);
         }
 
         // Fires the session opens to the handler.
-        if (_service && _service.handler) {
-            _service.handler.sessionOpened(this);
-        }
+        handler.sessionOpened(this);
 
         // Releases the connect future if absently.
         if (_connectFuture) {
@@ -363,17 +372,13 @@ public dynamic class SocketSession implements IoSession, IoChainController, ILif
         }
 
         // Fires the closed event to the filters.
-        if (_service && _service.filters) {
-            var ioFilters:Vector.<IoFilter> = _service.filters;
-            for each (var f:IoFilter in ioFilters) {
-                f.sessionClosed(this);
-            }
+        var chain:Vector.<IoFilter> = this.filters;
+        for each (var f:IoFilter in chain) {
+            f.sessionClosed(this);
         }
 
         // Fires the closed event to the handler.
-        if (_service && _service.handler) {
-            _service.handler.sessionClosed(this);
-        }
+        handler.sessionClosed(this);
 
         // Destory this session.
         destory();
@@ -406,9 +411,11 @@ public dynamic class SocketSession implements IoSession, IoChainController, ILif
             var bytes:ByteArray = new ByteArray();
             _socket.readBytes(bytes, 0, _socket.bytesAvailable);
 
-            if (_service && _service.filters && _service.filters.length) {
+            if (filters.length) {
                 _ops |= _READ_OPS;
-                _service.filters[0].messageReceived(this, bytes, this);
+                filters[0].messageReceived(this, bytes, this);
+            } else { // Dispatch to the I/O handler directly.
+                handler.messageReceived(this, bytes);
             }
         }
     }
@@ -423,5 +430,55 @@ public dynamic class SocketSession implements IoSession, IoChainController, ILif
         this._port = port;
     }
 }
+}
+
+import $69.network.api.IoHandler;
+import $69.network.api.IoSession;
+
+/** @private */
+class AnonymousHandler implements IoHandler {
+
+    /**
+     * Creates a AnonymousHandler instance.
+     */
+    public function AnonymousHandler(){
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function sessionCreated(session:IoSession):void {
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function sessionOpened(session:IoSession):void {
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function sessionClosed(session:IoSession):void {
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function messageSent(session:IoSession, message:Object):void {
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function messageReceived(session:IoSession, message:Object):void {
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function errorCaught(session:IoSession, e:Error):void {
+    }
+
 }
 // vim:ft=as3
