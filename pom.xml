@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2013 keyhom.c@gmail.com.
+  ~
+  ~ This software is provided 'as-is', without any express or implied warranty.
+  ~ In no event will the authors be held liable for any damages arising from
+  ~ the use of this software.
+  ~
+  ~ Permission is granted to anyone to use this software for any purpose
+  ~ excluding commercial applications, and to alter it and redistribute it
+  ~ freely, subject to the following restrictions:
+  ~
+  ~     1. The origin of this software must not be misrepresented; you must not
+  ~     claim that you wrote the original software. If you use this software
+  ~     in a product, an acknowledgment in the product documentation would be
+  ~     appreciated but is not required.
+  ~
+  ~     2. Altered source versions must be plainly marked as such, and must not
+  ~     be misrepresented as being the original software.
+  ~
+  ~     3. This notice may not be removed or altered from any source
+  ~     distribution.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>ls.keyhom.69work</groupId>
+  <artifactId>69works</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+  <modules>
+    <module>69core</module>
+  </modules>
+  <packaging>pom</packaging>
+  <name>69Works Parent</name>
+
+  <prerequisites>
+    <maven>3.0.3</maven>
+  </prerequisites>
+
+  <properties>
+    <debug>true</debug>
+    <skip>false</skip>
+    <lib.sdk.version>4.5.0.20967</lib.sdk.version>
+    <lib.sdk.groupId>com.adobe.flex.framework</lib.sdk.groupId>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.test.skip>true</maven.test.skip>
+  </properties>
+
+  <build>
+    <sourceDirectory>src</sourceDirectory>
+    <testSourceDirectory>test</testSourceDirectory>
+
+    <plugins>
+      <plugin>
+        <groupId>org.sonatype.flexmojos</groupId>
+        <artifactId>flexmojos-maven-plugin</artifactId>
+      </plugin>
+    </plugins>
+
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.sonatype.flexmojos</groupId>
+          <artifactId>flexmojos-maven-plugin</artifactId>
+          <version>4.2-beta</version>
+          <extensions>true</extensions>
+          <dependencies>
+            <dependency>
+              <groupId>com.adobe.flex</groupId>
+              <artifactId>compiler</artifactId>
+              <version>${lib.sdk.version}</version>
+              <type>pom</type>
+            </dependency>
+          </dependencies>
+          <configuration>
+            <debug>${debug}</debug>
+            <skip>${skip}</skip>
+            <allowSourcePathOverlap>true</allowSourcePathOverlap>
+            <defines>
+              <property>
+                <name>CONFIG::debug</name>
+                <value>${debug}</value>
+              </property>
+              <property>
+                <name>CONFIG::release</name>
+                <value>!${debug}</value>
+              </property>
+            </defines>
+            <storepass/>
+            <actionscriptFileEncoding>UTF-8</actionscriptFileEncoding>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+
+  <dependencies>
+    <dependency>
+      <groupId>${lib.sdk.groupId}</groupId>
+      <artifactId>playerglobal</artifactId>
+      <version>${lib.sdk.version}</version>
+      <type>swc</type>
+      <classifier>10.2</classifier>
+    </dependency>
+    <dependency>
+      <groupId>${lib.sdk.groupId}</groupId>
+      <artifactId>playerglobal</artifactId>
+      <version>${lib.sdk.version}</version>
+      <type>rb.swc</type>
+    </dependency>
+    <dependency>
+      <groupId>${lib.sdk.groupId}</groupId>
+      <artifactId>framework</artifactId>
+      <version>${lib.sdk.version}</version>
+      <type>swc</type>
+      <scope>external</scope>
+    </dependency>
+  </dependencies>
+
+  <developers>
+    <developer>
+      <id>keyhom</id>
+      <name>keyhom.c</name>
+      <email>keyhom.c@gmail.com</email>
+      <roles>
+        <role>designer, developer</role>
+      </roles>
+      <url>http://github.com/keyhom/</url>
+      <timezone>+8</timezone>
+    </developer>
+  </developers>
+
+</project>
+    <!--vim:ft=xml-->

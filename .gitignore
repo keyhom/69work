@@ -1,0 +1,13 @@
+# Test ignores.
+69test/
+
+# Intellij Idea project files.
+*.iml
+.idea/
+
+# FlashBuilder project files.
+.project
+.classpath
+.settings/
+
+# vim:ft=txt
