@@ -68,6 +68,14 @@ public interface IoSession {
      */
     function get port():uint;
 
+    /**
+     * Designates to output the session with the specified information.
+     *
+     * @param includeRemotePeer <tt>true</tt> if contains the remote-peer information, <tt>false</tt> otherwise.
+     * @return The formatted output text.
+     */
+    function toString(includeRemotePeer:Boolean = false):String;
+
 }
 }
 // vim:ft=as3

@@ -51,13 +51,13 @@ public dynamic class SocketSession implements IoSession, IoChainController, ILif
     /** @private */
     private static const _EMPTY_FILTERS:Vector.<IoFilter> = new Vector.<IoFilter>(0, true);
     /** @private */
-    private static var _EMPTY_HANDLER:IoHandler;
-    /** @private */
     private static const _READ_OPS:int = 1 << 1;
     /** @private */
     private static const _WRITE_OPS:int = 1 << 2;
     /** @private */
     private const _id:Number = nextSessionId();
+    /** @private */
+    private static var _EMPTY_HANDLER:IoHandler;
     /** @private */
     private static var _INSTANCE_ID:Number = 0;
 
@@ -303,6 +303,17 @@ public dynamic class SocketSession implements IoSession, IoChainController, ILif
     }
 
     /**
+     * @inheritDoc
+     */
+    public function toString(includeRemotePeer:Boolean = false):String {
+        var s:String = "SocketSession#" + id;
+        if (includeRemotePeer) {
+            s += ' { host: ' + host + ', port: ' + port + ' }';
+        }
+        return s;
+    }
+
+    /**
      * Writes the specified byte-array directly.
      *
      * @param bytes The byte-array to write.
@@ -315,6 +326,13 @@ public dynamic class SocketSession implements IoSession, IoChainController, ILif
         }
     }
 
+
+    //----------------------------------------------------------------------------
+    //
+    // Event Handlers
+    //
+    //----------------------------------------------------------------------------
+
     private function fireErrorCaught(error:Error):void {
         // Fires the error caught to the filters.
         var chain:Vector.<IoFilter> = filters;
@@ -325,13 +343,6 @@ public dynamic class SocketSession implements IoSession, IoChainController, ILif
         // Fires the error caught to the handler.
         handler.errorCaught(this, error);
     }
-
-
-    //----------------------------------------------------------------------------
-    //
-    // Event Handlers
-    //
-    //----------------------------------------------------------------------------
 
     /** @private */
     private function _onConnect(e:Event):void {
@@ -346,6 +357,12 @@ public dynamic class SocketSession implements IoSession, IoChainController, ILif
         if (!_socket.hasEventListener(IOErrorEvent.IO_ERROR))
             _socket.addEventListener(IOErrorEvent.IO_ERROR, _onIoError);
 
+        // Releases the connect future if absently.
+        if (_connectFuture) {
+            _connectFuture.complete(this);
+            _connectFuture = null;
+        }
+
         // Fires the session opens to the filters.
         var chain:Vector.<IoFilter> = filters;
         for each(var f:IoFilter in chain) {
@@ -354,12 +371,6 @@ public dynamic class SocketSession implements IoSession, IoChainController, ILif
 
         // Fires the session opens to the handler.
         handler.sessionOpened(this);
-
-        // Releases the connect future if absently.
-        if (_connectFuture) {
-            _connectFuture.complete(this);
-            _connectFuture = null;
-        }
     }
 
     /** @private */
@@ -441,7 +452,7 @@ class AnonymousHandler implements IoHandler {
     /**
      * Creates a AnonymousHandler instance.
      */
-    public function AnonymousHandler(){
+    public function AnonymousHandler() {
     }
 
     /**
