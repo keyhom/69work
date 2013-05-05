@@ -102,12 +102,14 @@
       <version>${lib.sdk.version}</version>
       <type>swc</type>
       <classifier>10.2</classifier>
+      <scope>external</scope>
     </dependency>
     <dependency>
       <groupId>${lib.sdk.groupId}</groupId>
       <artifactId>playerglobal</artifactId>
       <version>${lib.sdk.version}</version>
       <type>rb.swc</type>
+      <scope>external</scope>
     </dependency>
     <dependency>
       <groupId>${lib.sdk.groupId}</groupId>
