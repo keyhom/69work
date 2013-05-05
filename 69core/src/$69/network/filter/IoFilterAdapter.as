@@ -33,6 +33,7 @@ import $69.network.api.IoSession;
  * @author keyhom
  */
 public class IoFilterAdapter implements IoFilter {
+
     /**
      * Creates an IoFilterAdapter instance.
      */

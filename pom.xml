@@ -131,5 +131,26 @@
     </developer>
   </developers>
 
+  <profiles>
+    <profile>
+      <id>flexunit</id>
+      <dependencies>
+        <dependency>
+          <groupId>com.adobe.flexunit</groupId>
+          <artifactId>flexunit</artifactId>
+          <version>4.0-rc-1</version>
+          <type>swc</type>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>${lib.sdk.groupId}</groupId>
+          <artifactId>common-framework</artifactId>
+          <version>${lib.sdk.version}</version>
+          <type>pom</type>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
+
 </project>
     <!--vim:ft=xml-->

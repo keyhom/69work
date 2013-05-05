@@ -30,6 +30,7 @@ import $69.core.api.ILifecycle;
 import $69.network.api.IoClient;
 import $69.network.api.IoFilter;
 import $69.network.api.IoHandler;
+import $69.network.api.IoSession;
 import $69.network.session.SocketSession;
 
 import flash.net.Socket;
@@ -146,6 +147,13 @@ public class DefaultIoClient implements IoClient, ILifecycle {
      */
     public function dispose():void {
         _activated = false;
+
+        if (null != _managedSessions) // Destory all the managed sessions.
+            for each (var s:IoSession in _managedSessions) {
+                if (s is ILifecycle) {
+                    ILifecycle(s).destory();
+                }
+            }
         _managedSessions = null;
     }
 
