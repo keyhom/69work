@@ -43,6 +43,7 @@
     <skip>false</skip>
     <lib.sdk.version>4.5.0.20967</lib.sdk.version>
     <lib.sdk.groupId>com.adobe.flex.framework</lib.sdk.groupId>
+    <playerglobal.classifier>10.2</playerglobal.classifier>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.test.skip>true</maven.test.skip>
   </properties>
@@ -101,7 +102,7 @@
       <artifactId>playerglobal</artifactId>
       <version>${lib.sdk.version}</version>
       <type>swc</type>
-      <classifier>10.2</classifier>
+      <classifier>${playerglobal.classifier}</classifier>
       <scope>external</scope>
     </dependency>
     <dependency>
@@ -133,6 +134,45 @@
     </developer>
   </developers>
 
+  <scm>
+    <tag>HEAD</tag>
+    <url>scm:git:https://github.com/keyhom/69work/</url>
+    <connection>scm:git:git://github.com/keyhom/69work.git</connection>
+    <developerConnection>scm:git:https://github.com/keyhom/69work.git</developerConnection>
+  </scm>
+
+  <distributionManagement>
+    <repository>
+      <id>releases</id>
+      <layout>default</layout>
+      <url>http://nexus.keyhom.org/content/repositories/releases/</url>
+    </repository>
+    <snapshotRepository>
+      <id>snapshots</id>
+      <layout>default</layout>
+      <url>http://nexus.keyhom.org/content/repositories/snapshots/</url>
+    </snapshotRepository>
+  </distributionManagement>
+
+  <repositories>
+    <repository>
+      <id>keyhom-repos</id>
+      <name>Keyhom's Repositories</name>
+      <layout>default</layout>
+      <url>http://nexus.keyhom.org/content/groups/public/</url>
+      <releases>
+        <checksumPolicy>warn</checksumPolicy>
+        <enabled>true</enabled>
+        <updatePolicy>interval:7200</updatePolicy>
+      </releases>
+      <snapshots>
+        <checksumPolicy>warn</checksumPolicy>
+        <enabled>true</enabled>
+        <updatePolicy>interval:7200</updatePolicy>
+      </snapshots>
+    </repository>
+  </repositories>
+
   <profiles>
     <profile>
       <id>flexunit</id>
@@ -152,7 +192,27 @@
         </dependency>
       </dependencies>
     </profile>
+
+    <profile>
+      <id>attach-sources</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.sonatype.flexmojos</groupId>
+            <artifactId>flexmojos-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>default-sources</id>
+                <goals>
+                  <goal>sources</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
 
 </project>
-    <!--vim:ft=xml-->
+<!--vim:ft=xml-->

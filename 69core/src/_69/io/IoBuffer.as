@@ -710,7 +710,8 @@ public class IoBuffer implements IBuffer, IBufferInput, IBufferOutput {
         if (value) {
             null == charset ? charset = 'utf-8' : false;
             validate();
-            var forward:Boolean = pos < 0 ? pos = _position : false;
+            var forward:Boolean = pos < 0;
+            forward ? pos = _position : false;
             // Determines the byte length.
             var b:ByteArray = new ByteArray();
             b.endian = endian;
@@ -735,7 +736,8 @@ public class IoBuffer implements IBuffer, IBufferInput, IBufferOutput {
             }
             null == charset ? charset = 'utf-8' : false;
             validate();
-            var forward:Boolean = pos < 0 ? pos = _position : false;
+            var forward:Boolean = pos < 0;
+            forward ? pos = _position : false;
             // Determines the byte length of value.
             var b:ByteArray = new ByteArray;
             b.endian = endian;
