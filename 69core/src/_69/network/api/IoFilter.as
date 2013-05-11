@@ -23,6 +23,7 @@
 
 package _69.network.api {
 
+
 /**
  * Represents a I/O filter with <tt>IoSession</tt> to intercept all the I/O operation.
  *
@@ -67,7 +68,7 @@ public interface IoFilter {
      * @param message The message which being written.
      * @param chain The chain controller for calling next filter.
      */
-    function messageWritting(session:IoSession, message:Object, chain:IoChainController):void;
+    function messageWritting(session:IoSession, message:IWriteRequest, chain:IoChainController):void;
 
     /**
      * Fires when the specified <tt>IoSession</tt> was sent to the end-point of the connection.

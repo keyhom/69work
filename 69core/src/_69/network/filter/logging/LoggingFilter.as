@@ -23,12 +23,16 @@
 
 package _69.network.filter.logging {
 
+import _69.io.IoBuffer;
 import _69.logging.ILogger;
 import _69.logging.LogLogger;
 import _69.logging.LoggerFactory;
+import _69.network.api.IWriteRequest;
 import _69.network.api.IoChainController;
 import _69.network.api.IoSession;
 import _69.network.filter.IoFilterAdapter;
+
+import flash.utils.ByteArray;
 
 /**
  * The <tt>LoggingFilter</tt> that implements from <tt>IoFilter</tt> logging to filter for the <tt>IoSession</tt>s's events.
@@ -86,6 +90,10 @@ public class LoggingFilter extends IoFilterAdapter {
      * @inheritDoc
      */
     override public function messageReceived(session:IoSession, message:Object, chain:IoChainController):void {
+        if (message is ByteArray) {
+            message = IoBuffer.toHexString(message as ByteArray);
+        }
+
         _logger.log(_logLevel, "RECEIVED  - [{0}] {1}", session, message);
         super.messageReceived(session, message, chain);
     }
@@ -93,8 +101,12 @@ public class LoggingFilter extends IoFilterAdapter {
     /**
      * @inheritDoc
      */
-    override public function messageWritting(session:IoSession, message:Object, chain:IoChainController):void {
-        _logger.log(_logLevel, "WRITTING  - [{0}] {1}", session, message);
+    override public function messageWritting(session:IoSession, message:IWriteRequest, chain:IoChainController):void {
+        var msg:Object = message.message;
+        if (message.message is ByteArray) {
+            msg = IoBuffer.toHexString(message.message as ByteArray);
+        }
+        _logger.log(_logLevel, "WRITTING  - [{0}] {1}", session, msg);
         super.messageWritting(session, message, chain);
     }
 
@@ -102,6 +114,10 @@ public class LoggingFilter extends IoFilterAdapter {
      * @inheritDoc
      */
     override public function messageSent(session:IoSession, message:Object):void {
+        if (message is ByteArray) {
+            message = IoBuffer.toHexString(message as ByteArray);
+        }
+
         _logger.log(_logLevel, "SENT      - [{0}] {1}", session, message);
         super.messageSent(session, message);
     }

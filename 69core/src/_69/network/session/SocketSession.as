@@ -23,9 +23,9 @@
 
 package _69.network.session {
 
-import _69.$69internal;
 import _69.core.api.DefaultFuture;
 import _69.core.api.ILifecycle;
+import _69.network.api.IWriteRequest;
 import _69.network.api.IoChainController;
 import _69.network.api.IoClient;
 import _69.network.api.IoFilter;
@@ -152,6 +152,15 @@ public dynamic class SocketSession implements IoSession, IoChainController, ILif
         return _EMPTY_HANDLER;
     }
 
+    private function fireMessageSent(message:Object):void {
+        var chain:Vector.<IoFilter> = filters;
+        for each(var f:IoFilter in chain) {
+            f.messageSent(this, message);
+        }
+
+        handler.messageSent(this, message);
+    }
+
     /**
      * @inheritDoc
      */
@@ -160,16 +169,14 @@ public dynamic class SocketSession implements IoSession, IoChainController, ILif
             if (message is ByteArray) {
                 writeDirect(message as ByteArray);
 
-                var chain:Vector.<IoFilter> = filters;
-                for each(var f:IoFilter in chain) {
-                    f.messageSent(this, message);
-                }
-
-                handler.messageSent(this, message);
+                fireMessageSent(message);
             } else {
                 if (filters.length) {
                     _ops |= _WRITE_OPS;
-                    filters[filters.length - 1].messageWritting(this, message, this);
+                    _writeChainPos = filters.length > 0 ? filters.length - 1 : 0;
+                    var request:DefaultWriteRequest = new DefaultWriteRequest(message);
+                    request.$69internal::setFuture(new DefaultFuture);
+                    callNextFilter(this, request);
                 }
             }
         }
@@ -190,31 +197,32 @@ public dynamic class SocketSession implements IoSession, IoChainController, ILif
      */
     public function callNextFilter(session:IoSession, message:Object):void {
         if (_WRITE_OPS == (_ops & _WRITE_OPS)) { // Process write.
-            if (_writeChainPos <= 0) {
+            if (_writeChainPos < 0) {
                 // end of chain.
-                if (message is ByteArray) {
-                    writeDirect(message as ByteArray);
+                var msg:Object = message is IWriteRequest ? IWriteRequest(message).message : message;
+                if (msg is ByteArray) {
+                    writeDirect(msg as ByteArray);
+
+                    fireMessageSent(message is IWriteRequest ? IWriteRequest(message).originMessage : message);
                 } else {
                     fireErrorCaught(new IllegalOperationError("Can't write with unencoded message."));
                 }
 
                 _ops &= ~_WRITE_OPS;
-                _writeChainPos = filters.length - 1;
-            }
-
-            if (_writeChainPos >= 0 && filters.length) {
-                filters[_writeChainPos--].messageWritting(session, message, this);
+                _writeChainPos = filters.length > 0 ? filters.length - 1 : 0;
+            } else if (_writeChainPos >= 0 && filters.length) {
+                filters[_writeChainPos--].messageWritting(session, message as IWriteRequest, this);
             }
         }
 
         if (_READ_OPS == (_ops & _READ_OPS)) { // Process read.
-            if (_readChainPos >= filters.length - 1) {
+            if (_readChainPos > filters.length - 1) {
                 // end of chain.
                 _ops &= ~_READ_OPS;
                 _readChainPos = 0;
 
                 handler.messageReceived(session, message);
-            } else if (_readChainPos < filters.length - 1) {
+            } else if (_readChainPos <= filters.length - 1) {
                 filters[_readChainPos++].messageReceived(session, message, this);
             }
         }
@@ -238,6 +246,11 @@ public dynamic class SocketSession implements IoSession, IoChainController, ILif
                 _socket.addEventListener(Event.CLOSE, _onClose);
             if (!_socket.hasEventListener(SecurityErrorEvent.SECURITY_ERROR))
                 _socket.addEventListener(SecurityErrorEvent.SECURITY_ERROR, _onSecurityError);
+            if (!_socket.hasEventListener(ProgressEvent.SOCKET_DATA))
+                _socket.addEventListener(ProgressEvent.SOCKET_DATA, _onSocketData);
+            if (!_socket.hasEventListener(IOErrorEvent.IO_ERROR))
+                _socket.addEventListener(IOErrorEvent.IO_ERROR, _onIoError);
+
         }
 
         // Fires the session created event to the filters.
@@ -352,11 +365,6 @@ public dynamic class SocketSession implements IoSession, IoChainController, ILif
         // Flush the socket.
         _socket.flush();
 
-        if (!_socket.hasEventListener(ProgressEvent.SOCKET_DATA))
-            _socket.addEventListener(ProgressEvent.SOCKET_DATA, _onSocketData);
-        if (!_socket.hasEventListener(IOErrorEvent.IO_ERROR))
-            _socket.addEventListener(IOErrorEvent.IO_ERROR, _onIoError);
-
         // Releases the connect future if absently.
         if (_connectFuture) {
             _connectFuture.complete(this);
@@ -424,7 +432,9 @@ public dynamic class SocketSession implements IoSession, IoChainController, ILif
 
             if (filters.length) {
                 _ops |= _READ_OPS;
-                filters[0].messageReceived(this, bytes, this);
+                _readChainPos = 0;
+                // filters[0].messageReceived(this, bytes, this);
+                callNextFilter(this, bytes);
             } else { // Dispatch to the I/O handler directly.
                 handler.messageReceived(this, bytes);
             }
@@ -492,4 +502,5 @@ class AnonymousHandler implements IoHandler {
     }
 
 }
+namespace $69internal = "http://p.keyhom.org/69/";
 // vim:ft=as3

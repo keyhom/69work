@@ -169,11 +169,9 @@ public interface IBufferInput extends IBuffer {
      * @param bytes The byte array to get.
      * @param offset The offset of the specified byte array to get.
      * @param length The length of the byte array to get.
-     * @param pos The specified position to peek if &gt; 0, or represents the
-     *            current position if &lt; 0, the default value is -1.
      * @throws flash.errors.EOFError there is not sufficient data available to read.
      */
-    function getBytes(bytes:ByteArray, offset:uint = 0, length:uint = 0, pos:int = -1):void;
+    function getBytes(bytes:ByteArray, offset:uint = 0, length:uint = 0):void;
 
     /**
      * Gets the number of data bytes, specified by the length parameter, from
@@ -183,12 +181,11 @@ public interface IBufferInput extends IBuffer {
      * position cursor after this. Otherwise, represents to peek the value at the
      * specified position, this will not move the position cursor.
      *
+     * @param offset The offset within the array of the first byte to be written.
      * @param length The length to get.
-     * @param pos The specified position to peek if &gt; 0, or represents the
-     *            current position if &lt; 0, the default value is -1.
      * @throws flash.errors.EOFError there is not sufficient data available to read.
      */
-    function getByteArray(length:uint = 0, pos:int = -1):ByteArray;
+    function getByteArray(offset:uint = 0, length:uint = 0):ByteArray;
 
     /**
      * Gets an IEEE 754 double-precision floating point number from the buffer.

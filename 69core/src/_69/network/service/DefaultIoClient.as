@@ -23,7 +23,6 @@
 
 package _69.network.service {
 
-import _69.$69internal;
 import _69.core.api.DefaultFuture;
 import _69.core.api.IFuture;
 import _69.core.api.ILifecycle;
@@ -134,7 +133,7 @@ public class DefaultIoClient implements IoClient, ILifecycle {
             }
         });
 
-        var socket:Socket = new Socket();
+        var socket:Socket = newSocket();
         new SocketSession(this, socket, connectFuture);
         socket.connect(host, port);
         socket = null;
@@ -172,6 +171,17 @@ public class DefaultIoClient implements IoClient, ILifecycle {
         _handler = null;
     }
 
+    /**
+     * Creates a new Socket instance.
+     *
+     * @return The new created socket.
+     */
+    protected function newSocket():Socket {
+        return new Socket();
+    }
+
 }
 }
+
+namespace $69internal = "http://p.keyhom.org/69/";
 // vim:ft=as3

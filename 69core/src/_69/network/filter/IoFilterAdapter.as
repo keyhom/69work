@@ -23,6 +23,7 @@
 
 package _69.network.filter {
 
+import _69.network.api.IWriteRequest;
 import _69.network.api.IoChainController;
 import _69.network.api.IoFilter;
 import _69.network.api.IoSession;
@@ -68,7 +69,7 @@ public class IoFilterAdapter implements IoFilter {
     /**
      * @inheritDoc
      */
-    public function messageWritting(session:IoSession, message:Object, chain:IoChainController):void {
+    public function messageWritting(session:IoSession, message:IWriteRequest, chain:IoChainController):void {
         chain.callNextFilter(session, message);
     }
 

@@ -21,8 +21,19 @@
  *     distribution.
  */
 
-package _69 {
+package _69.core {
 
-// Namespace for 69.
-public namespace $69internal = "http://p.keyhom.org/69/";
+/**
+ * @author keyhom
+ */
+public interface IClone {
+
+    /**
+     * Clones this instance.
+     *
+     * @return The cloned instance.
+     */
+    function clone():Object;
 }
+}
+// vim:ft=as3

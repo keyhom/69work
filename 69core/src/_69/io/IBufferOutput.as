@@ -62,10 +62,9 @@ public interface IBufferOutput extends IBuffer {
      * @param bytes The byte array to write.
      * @param offset A zero-based index specifying the position into the array to begin writting.
      * @param length An unsigned integer specifying how far into the buffer to write.
-     * @param pos The position to write to. If the <code>pos</code> is &lt; 0, the <code>value</code> will being written at current position; if the <code>pos</code> is &gt; 0, the <code>value</code> will being written at the specified position by the supplied.
      * @return This buffer for chaining.
      */
-    function putByteArray(bytes:ByteArray, offset:uint = 0, length:uint = 0, pos:int = -1):IBufferOutput;
+    function putByteArray(bytes:ByteArray, offset:uint = 0, length:uint = 0):IBufferOutput;
 
     /**
      * Writes an IEEE 754 double-precision (64-bit) floating point number.

@@ -105,13 +105,13 @@
       <classifier>${playerglobal.classifier}</classifier>
       <scope>external</scope>
     </dependency>
-    <dependency>
-      <groupId>${lib.sdk.groupId}</groupId>
-      <artifactId>playerglobal</artifactId>
-      <version>${lib.sdk.version}</version>
-      <type>rb.swc</type>
-      <scope>external</scope>
-    </dependency>
+    <!--<dependency>-->
+      <!--<groupId>${lib.sdk.groupId}</groupId>-->
+      <!--<artifactId>playerglobal</artifactId>-->
+      <!--<version>${lib.sdk.version}</version>-->
+      <!--<type>rb.swc</type>-->
+      <!--<scope>external</scope>-->
+    <!--</dependency>-->
     <dependency>
       <groupId>${lib.sdk.groupId}</groupId>
       <artifactId>framework</artifactId>

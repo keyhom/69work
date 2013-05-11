@@ -39,9 +39,6 @@ public class DefaultFuture implements IFuture, IElement, ILifecycle {
     }
 
     /** @private */
-    private var _callbacks:Vector.<Function>;
-
-    /** @private */
     private var _result:Object;
 
     /**
@@ -68,22 +65,35 @@ public class DefaultFuture implements IFuture, IElement, ILifecycle {
         return result as Error;
     }
 
+    /** @private */
+    private var _callbacks:Vector.<Function>;
+
+    /**
+     * The callback functions registered in this <tt>IFuture</tt>.
+     */
+    protected function get callbacks():Vector.<Function> {
+        return _callbacks;
+    }
+
     /**
      * Completes the future..
      */
-    public function complete(result:Object):void {
+    public function complete(result:Object, ...rest):void {
         this._result = result;
         _completed = true;
+
+        if (null != rest)
+            rest.unshift(this);
 
         // notify all callbacks.
         if (_callbacks) {
             for each(var l:Function in _callbacks) {
                 try {
-                    l.call(null, this);
+                    l.apply(null, rest);
                 } catch (ignore:*) {
+                    throw ignore;
                 }
             }
-
         }
 
         // Destory this future.
@@ -133,6 +143,26 @@ public class DefaultFuture implements IFuture, IElement, ILifecycle {
     public function destory():void {
         _result = null;
         _callbacks = null;
+    }
+
+    /**
+     * Sets the result object.
+     *
+     * @return This future for chaining.
+     */
+    protected function setResult(value:Object):DefaultFuture {
+        this._result = value;
+        return this;
+    }
+
+    /**
+     * Sets the this future to completed or not.
+     *
+     * @return This future for chaining.
+     */
+    protected function setCompleted(value:Boolean = true):DefaultFuture {
+        _completed = true;
+        return this;
     }
 
 }

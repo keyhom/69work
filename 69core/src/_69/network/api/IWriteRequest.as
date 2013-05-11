@@ -21,22 +21,43 @@
  *     distribution.
  */
 
-package _69.network.filter.codec {
+package _69.network.api {
 
-import _69.network.filter.IoFilterAdapter;
+import _69.core.api.IFuture;
 
 /**
- * An <tt>IoFilter</tt> which translates binary or protocol specific data into message objects and vice vera using <tt>ProtocolCodecFactory<tt>, <tt>ProtocolEncoder</tt>, <tt>ProtocolDecoder</tt>.
+ * The write request created by the <tt>IoSession</tt>'s write method, which is
+ * transmitted through the filter chain and finish as a socket write. <br/>
+ *
+ * We store the original message into this data structure, along the associated
+ * potentially modified message if the original message gets encoded during the
+ * process.<br/>
+ *
+ * Note that when we always ends with the message being a ByteArray when we reach
+ * the socket. <br/>
+ *
+ * We also keep a <tt>IFuture</tt> into this data structure to inform the caller
+ * about the write completion.
  *
  * @author keyhom
  */
-public class ProtocolFilter extends IoFilterAdapter {
+public interface IWriteRequest {
 
     /**
-     * Creates an new ProtocolFilter instance.
+     * The message stored in this request.
      */
-    public function ProtocolFilter() {
-    }
+    function get message():Object;
+
+    /**
+     * The original message stored in this request.
+     */
+    function get originMessage():Object;
+
+    /**
+     * The future to be completed on a write success.
+     */
+    function get future():IFuture;
+
 }
 }
 // vim:ft=as3

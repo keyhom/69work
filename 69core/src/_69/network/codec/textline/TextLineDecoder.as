@@ -195,7 +195,7 @@ class Context {
     public function Context(maxLineLength:uint, charset:String = 'utf-8') {
         this._charset = charset;
         this._maxLineLength = maxLineLength;
-        _buf = new IoBuffer();
+        _buf = IoBuffer.allocate();
     }
 
     /** @private */
