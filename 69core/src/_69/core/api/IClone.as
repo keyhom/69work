@@ -21,7 +21,7 @@
  *     distribution.
  */
 
-package _69.core {
+package _69.core.api {
 
 /**
  * @author keyhom

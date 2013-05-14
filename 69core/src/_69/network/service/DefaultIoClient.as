@@ -119,10 +119,12 @@ public class DefaultIoClient implements IoClient, ILifecycle {
         var connectFuture:DefaultFuture = new DefaultFuture();
         connectFuture.callLater(function (f:IFuture):void {
             if (f.completed) {
-                if (null != f.result) {
-                    var s:SocketSession = f.result as SocketSession;
-                    s.$69internal::setHost(host);
-                    s.$69internal::setPort(port);
+                if (f.result is IoSession) {
+                    var s:IoSession = f.result as IoSession;
+                    if (s is SocketSession) {
+                        SocketSession(s).$69internal::setHost(host);
+                        SocketSession(s).$69internal::setPort(port);
+                    }
 
                     if (managedSessions)
                         managedSessions[s.id] = s;
