@@ -161,6 +161,18 @@ public dynamic class SocketSession implements IoSession, IoChainController, ILif
         handler.messageSent(this, message);
     }
 
+    /** @private */
+    protected function read(bytes:ByteArray):void {
+        if (filters.length) {
+            _ops |= _READ_OPS;
+            _readChainPos = 0;
+            // filters[0].messageReceived(this, bytes, this);
+            callNextFilter(this, bytes);
+        } else { // Dispatch to the I/O handler directly.
+            handler.messageReceived(this, bytes);
+        }
+    }
+
     /**
      * @inheritDoc
      */
@@ -430,14 +442,7 @@ public dynamic class SocketSession implements IoSession, IoChainController, ILif
             var bytes:ByteArray = new ByteArray();
             _socket.readBytes(bytes, 0, _socket.bytesAvailable);
 
-            if (filters.length) {
-                _ops |= _READ_OPS;
-                _readChainPos = 0;
-                // filters[0].messageReceived(this, bytes, this);
-                callNextFilter(this, bytes);
-            } else { // Dispatch to the I/O handler directly.
-                handler.messageReceived(this, bytes);
-            }
+            read(bytes);
         }
     }
 
