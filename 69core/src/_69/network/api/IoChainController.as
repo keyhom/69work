@@ -33,7 +33,7 @@ public interface IoChainController {
     /**
      * Calls next filter.
      */
-    function callNextFilter(session:IoSession, message:Object):void;
+    function callNextFilter(session:IoSession, message:Object, increment:Boolean = true):void;
 
 }
 }

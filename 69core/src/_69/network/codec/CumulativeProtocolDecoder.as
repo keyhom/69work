@@ -70,6 +70,7 @@ public class CumulativeProtocolDecoder implements IStateProtocolDecoder {
         }
 
         if (buffer && buffer.remaining) {
+            
             var useSessionBuffer:Boolean = true;
             var sessionBuf:IoBuffer = (context[_BUFFER_KEY] as IoBuffer);
             // If we have a session buffer, append data to that; otherwise use
@@ -88,10 +89,14 @@ public class CumulativeProtocolDecoder implements IStateProtocolDecoder {
                 useSessionBuffer = false;
             }
 
+            var results:Array = [];
             var result:Object;
-            if ((result = doDecode(buf, context))) {
-                if (0 == buf.position)
-                    throw new IllegalOperationError("doDecode() can't return true when buffer is not consumed.");
+            while (buf.remaining) {
+                if (null != (result = doDecode(buf, context))) {
+                    if (0 == buf.position)
+                        throw new IllegalOperationError("doDecode() can't return true when buffer is not consumed.");
+                    results.push(result);
+                }
             }
 
             // If there is any data left that can't be decoded, we store it in a
@@ -114,7 +119,7 @@ public class CumulativeProtocolDecoder implements IStateProtocolDecoder {
                 }
             }
 
-            return result;
+            return results;
         }
 
         return null;

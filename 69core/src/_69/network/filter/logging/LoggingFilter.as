@@ -92,9 +92,13 @@ public class LoggingFilter extends IoFilterAdapter {
     override public function messageReceived(session:IoSession, message:Object, chain:IoChainController):void {
         if (message is ByteArray) {
             message = IoBuffer.toHexString(message as ByteArray);
+        } else if (message is Array) {
+            for (var i:int = 0, l:int = message.length; i < l; i++) {
+                _logger.log(_logLevel, "RECEIVED  - [{0}] {1}", session, message[i]);
+            }
+        } else {
+            _logger.log(_logLevel, "RECEIVED  - [{0}] {1}", session, message);
         }
-
-        _logger.log(_logLevel, "RECEIVED  - [{0}] {1}", session, message);
         super.messageReceived(session, message, chain);
     }
 

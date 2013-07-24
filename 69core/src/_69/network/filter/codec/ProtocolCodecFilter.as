@@ -70,7 +70,7 @@ public class ProtocolCodecFilter extends IoFilterAdapter {
         var state:Object = getDecodingState(session);
 
         // Loop until the decoder cannot decode more.
-        var msg:Object;
+        var msg:Object = null;
         try {
             msg = _decoder.decode(message, state);
             if (msg != null) {

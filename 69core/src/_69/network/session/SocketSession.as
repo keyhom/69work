@@ -23,15 +23,6 @@
 
 package _69.network.session {
 
-import _69.core.api.DefaultFuture;
-import _69.core.api.ILifecycle;
-import _69.network.api.IWriteRequest;
-import _69.network.api.IoChainController;
-import _69.network.api.IoClient;
-import _69.network.api.IoFilter;
-import _69.network.api.IoHandler;
-import _69.network.api.IoSession;
-
 import flash.errors.IOError;
 import flash.errors.IllegalOperationError;
 import flash.events.Event;
@@ -40,6 +31,15 @@ import flash.events.ProgressEvent;
 import flash.events.SecurityErrorEvent;
 import flash.net.Socket;
 import flash.utils.ByteArray;
+
+import _69.core.api.DefaultFuture;
+import _69.core.api.ILifecycle;
+import _69.network.api.IWriteRequest;
+import _69.network.api.IoChainController;
+import _69.network.api.IoClient;
+import _69.network.api.IoFilter;
+import _69.network.api.IoHandler;
+import _69.network.api.IoSession;
 
 /**
  * The <tt>SocketSession</tt> implements the <tt>IoSession</tt> represents to use the AS3 <tt>Socket</tt> providing the connection operation.
@@ -207,7 +207,7 @@ public dynamic class SocketSession implements IoSession, IoChainController, ILif
     /**
      * @inheritDoc
      */
-    public function callNextFilter(session:IoSession, message:Object):void {
+    public function callNextFilter(session:IoSession, message:Object, increment:Boolean = true):void {
         if (_WRITE_OPS == (_ops & _WRITE_OPS)) { // Process write.
             if (_writeChainPos < 0) {
                 // end of chain.
@@ -223,7 +223,7 @@ public dynamic class SocketSession implements IoSession, IoChainController, ILif
                 _ops &= ~_WRITE_OPS;
                 _writeChainPos = filters.length > 0 ? filters.length - 1 : 0;
             } else if (_writeChainPos >= 0 && filters.length) {
-                filters[_writeChainPos--].messageWritting(session, message as IWriteRequest, this);
+                filters[increment ? _writeChainPos-- : _writeChainPos].messageWritting(session, message as IWriteRequest, this);
             }
         }
 
@@ -235,7 +235,7 @@ public dynamic class SocketSession implements IoSession, IoChainController, ILif
 
                 handler.messageReceived(session, message);
             } else if (_readChainPos <= filters.length - 1) {
-                filters[_readChainPos++].messageReceived(session, message, this);
+                filters[(increment ? _readChainPos++ : _readChainPos)].messageReceived(session, message, this);
             }
         }
     }
@@ -441,6 +441,10 @@ public dynamic class SocketSession implements IoSession, IoChainController, ILif
         if (_socket.connected && _socket.bytesAvailable) {
             var bytes:ByteArray = new ByteArray();
             _socket.readBytes(bytes, 0, _socket.bytesAvailable);
+            
+//            trace(bytes.bytesAvailable);
+//            trace(IoBuffer.toHexString(bytes, bytes.bytesAvailable));
+            bytes.position = 0;
 
             read(bytes);
         }
