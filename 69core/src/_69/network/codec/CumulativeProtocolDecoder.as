@@ -60,34 +60,32 @@ public class CumulativeProtocolDecoder implements IStateProtocolDecoder {
      * @inheritDoc
      */
     public function decode(input:Object, context:Object):Object {
-        var buffer:IoBuffer;
+        var buffer:ByteArray;
         if (input is ByteArray) {
-            buffer = IoBuffer.wrap(ByteArray(input));
+            buffer = input as ByteArray;
         } else if (input is IoBuffer) {
-            buffer = IoBuffer(input);
+            buffer = input.getByteArray(0);
         } else {
             throw new ArgumentError("Invalid inputs binary or protocol-specific data.");
         }
 
-        if (buffer && buffer.remaining) {
-            
+        if (buffer && buffer.bytesAvailable) {
             var useSessionBuffer:Boolean = true;
-            var sessionBuf:IoBuffer = (context[_BUFFER_KEY] as IoBuffer);
+            var sessionBuf:ByteArray = (context[_BUFFER_KEY] as ByteArray);
             // If we have a session buffer, append data to that; otherwise use
             // the buffer read from the network directly.
-            var buf:IoBuffer = sessionBuf;
-            if (null != buf) {
-                buf.put(buffer);
-                var pos:uint = buf.position;
-                buf.positionTo(0);
-                var subBuf:IoBuffer = buf.slice();
-                subBuf.limitTo(pos);
-                buf.positionTo(pos);
-                buf = subBuf;
+            if (null != sessionBuf)
+            {
+                var newBuf:ByteArray = new ByteArray;
+                newBuf.writeBytes(sessionBuf);
+                newBuf.writeBytes(buffer);
+                newBuf.position = 0;
+                buffer = newBuf;
             } else {
-                buf = buffer;
                 useSessionBuffer = false;
             }
+
+            var buf:IoBuffer = IoBuffer.wrap(buffer);
 
             var results:Array = [];
             var result:Object;
@@ -97,23 +95,29 @@ public class CumulativeProtocolDecoder implements IStateProtocolDecoder {
                         throw new IllegalOperationError("doDecode() can't return true when buffer is not consumed.");
                     results.push(result);
                 }
+                else
+                    break;
             }
 
             // If there is any data left that can't be decoded, we store it in a
             // buffer in the session and next time this decoder is invoked the
             // session buffer gets appended to.
-            if (buf.remaining) {
-                if (!useSessionBuffer) {
-                    // storage remaining in session.
-                    sessionBuf = IoBuffer.allocate();
-                    sessionBuf.put(buf);
-                    context[_BUFFER_KEY] = sessionBuf;
-                }
+            if (buf.remaining && null != results && results.length > 0)
+            {
+                if (useSessionBuffer)
+                    ByteArray(context[_BUFFER_KEY]).clear();
+
+                var temp:ByteArray = new ByteArray;
+                temp.writeBytes(buf.array, buf.arrayOffset + buf.position, buf.remaining);
+                temp.position = 0;
+                context[_BUFFER_KEY] = temp;
+
             } else {
                 if (useSessionBuffer) {
                     // remove remaining in session.
-                    if (_BUFFER_KEY in context) {
-                        IoBuffer(context[_BUFFER_KEY]).free();
+                    if (_BUFFER_KEY in context)
+                    {
+                        ByteArray(context[_BUFFER_KEY]).clear();
                         delete context[_BUFFER_KEY];
                     }
                 }

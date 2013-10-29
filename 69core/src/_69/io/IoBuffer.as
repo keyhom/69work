@@ -754,34 +754,35 @@ public class IoBuffer implements IBuffer, IBufferInput, IBufferOutput {
      * @inheritDoc
      */
     public function putPrefixedString(value:String, prefixLength:uint = 2, charset:String = null, pos:int = -1):IBufferOutput {
-        if (value) {
-            if (!prefixLength || prefixLength == 3 || prefixLength > 4) {
-                throw new ArgumentError("Invalid prefix length!");
-            }
-            null == charset ? charset = 'utf-8' : false;
+        if (null == value)
+            value = "";
 
-            // Determines the byte length of value.
-            var b:ByteArray = new ByteArray;
-            b.endian = endian;
-            b.writeMultiByte(value, charset);
-            b.position = 0;
-
-            pos < 0 ? pos = nextIndex(b.length + prefixLength) : checkIndex(pos, b.length + prefixLength);
-            _bytes.position = ix(pos);
-
-            switch (prefixLength) {
-                case 1:
-                    _bytes.writeByte(b.length & 0xFF);
-                    break;
-                case 2:
-                    _bytes.writeShort(b.length & 0xFFFF);
-                    break;
-                case 4:
-                    _bytes.writeUnsignedInt(b.length);
-                    break;
-            }
-            _bytes.writeBytes(b, 0, b.length);
+        if (!prefixLength || prefixLength == 3 || prefixLength > 4) {
+            throw new ArgumentError("Invalid prefix length!");
         }
+        null == charset ? charset = 'utf-8' : false;
+
+        // Determines the byte length of value.
+        var b:ByteArray = new ByteArray;
+        b.endian = endian;
+        b.writeMultiByte(value, charset);
+        b.position = 0;
+
+        pos < 0 ? pos = nextIndex(b.length + prefixLength) : checkIndex(pos, b.length + prefixLength);
+        _bytes.position = ix(pos);
+
+        switch (prefixLength) {
+            case 1:
+                _bytes.writeByte(b.length & 0xFF);
+                break;
+            case 2:
+                _bytes.writeShort(b.length & 0xFFFF);
+                break;
+            case 4:
+                _bytes.writeUnsignedInt(b.length);
+                break;
+        }
+        _bytes.writeBytes(b, 0, b.length);
         return this;
     }
 
@@ -802,7 +803,7 @@ public class IoBuffer implements IBuffer, IBufferInput, IBufferOutput {
 
         var pos:uint = buffer.position;
         buffer.positionTo(0);
-        var bytes:ByteArray = buffer.getByteArray(0, n);
+        var bytes:ByteArray = buffer.getByteArray(pos, n);
 
         putByteArray(bytes, 0, bytes.length);
         return this;
