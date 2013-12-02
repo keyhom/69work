@@ -837,7 +837,7 @@ public class IoBuffer implements IBuffer, IBufferInput, IBufferOutput {
      * @return  the specified index.
      */
     internal function checkIndex(i:uint, nb:uint = 1):int {
-        if (i >= limit || nb > limit - i)
+        if (i > limit || nb > limit - i)
             throw new RangeError();
         return i;
     }

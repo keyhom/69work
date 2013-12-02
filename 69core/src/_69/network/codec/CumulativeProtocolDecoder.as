@@ -87,22 +87,27 @@ public class CumulativeProtocolDecoder implements IStateProtocolDecoder {
 
             var buf:IoBuffer = IoBuffer.wrap(buffer);
 
+            var decoded:Boolean = false;
             var results:Array = [];
             var result:Object;
             while (buf.remaining) {
-                if (null != (result = doDecode(buf, context))) {
-                    if (0 == buf.position)
+                var pos:int = buf.position;
+                result = doDecode(buf, context);
+                if (buf.position == pos) // data underflow.
+                {
+                    if (null != result)
                         throw new IllegalOperationError("doDecode() can't return true when buffer is not consumed.");
-                    results.push(result);
-                }
-                else
                     break;
+                }
+                decoded = true;
+                if (null != result)
+                    results.push(result);
             }
 
             // If there is any data left that can't be decoded, we store it in a
             // buffer in the session and next time this decoder is invoked the
             // session buffer gets appended to.
-            if (buf.remaining && null != results && results.length > 0)
+            if (buf.remaining && decoded)
             {
                 if (useSessionBuffer)
                     ByteArray(context[_BUFFER_KEY]).clear();
@@ -112,7 +117,7 @@ public class CumulativeProtocolDecoder implements IStateProtocolDecoder {
                 temp.position = 0;
                 context[_BUFFER_KEY] = temp;
 
-            } else {
+            } else if (!buf.remaining) {
                 if (useSessionBuffer) {
                     // remove remaining in session.
                     if (_BUFFER_KEY in context)
